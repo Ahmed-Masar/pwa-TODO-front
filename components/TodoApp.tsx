@@ -14,7 +14,8 @@ export default function TodoApp() {
 
   const fetchTodos = async () => {
     try {
-      const res = await fetch("http://localhost:8080/todos");
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const res = await fetch(`${apiUrl}/todos`);
       if (res.ok) {
         const data = await res.json();
         setTodos(data);
@@ -37,7 +38,8 @@ export default function TodoApp() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8080/todos", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const res = await fetch(`${apiUrl}/todos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: input, completed: false }),
@@ -59,7 +61,8 @@ export default function TodoApp() {
     setTodos(todos.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
 
     try {
-      await fetch(`http://localhost:8080/todos/${id}`, { method: "PUT" });
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      await fetch(`${apiUrl}/todos/${id}`, { method: "PUT" });
     } catch (error) {
         setTodos(oldTodos);
     }
@@ -68,7 +71,8 @@ export default function TodoApp() {
   const deleteTodo = async (id: string) => {
     setTodos(todos.filter(t => t.id !== id));
     try {
-        await fetch(`http://localhost:8080/todos/${id}`, { method: "DELETE" });
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+        await fetch(`${apiUrl}/todos/${id}`, { method: "DELETE" });
     } catch (error) {
         fetchTodos();
     }
