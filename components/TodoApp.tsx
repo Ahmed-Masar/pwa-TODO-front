@@ -18,16 +18,27 @@ export default function TodoApp() {
       const res = await fetch(`${apiUrl}/todos`);
       if (res.ok) {
         const data = await res.json();
-        setTodos(data);
-        // Save to localStorage for offline access
-        localStorage.setItem("todo-cache", JSON.stringify(data));
+        if (Array.isArray(data)) {
+          setTodos(data);
+          // Save to localStorage for offline access
+          localStorage.setItem("todo-cache", JSON.stringify(data));
+        } else {
+          setTodos([]);
+        }
       }
     } catch (error) {
       console.error("Failed to fetch todos, loading from cache...", error);
       // Fallback to cache if offline
       const cached = localStorage.getItem("todo-cache");
       if (cached) {
-        setTodos(JSON.parse(cached));
+        try {
+          const parsed = JSON.parse(cached);
+          setTodos(Array.isArray(parsed) ? parsed : []);
+        } catch (e) {
+          setTodos([]);
+        }
+      } else {
+        setTodos([]);
       }
     }
   };
@@ -64,17 +75,17 @@ export default function TodoApp() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
       await fetch(`${apiUrl}/todos/${id}`, { method: "PUT" });
     } catch (error) {
-        setTodos(oldTodos);
+      setTodos(oldTodos);
     }
   };
 
   const deleteTodo = async (id: string) => {
     setTodos(todos.filter(t => t.id !== id));
     try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-        await fetch(`${apiUrl}/todos/${id}`, { method: "DELETE" });
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      await fetch(`${apiUrl}/todos/${id}`, { method: "DELETE" });
     } catch (error) {
-        fetchTodos();
+      fetchTodos();
     }
   };
 
@@ -84,7 +95,7 @@ export default function TodoApp() {
         <h1 className="text-4xl font-extrabold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 text-center">
           Todo List
         </h1>
-        
+
         <form onSubmit={addTodo} className="flex gap-3 mb-8">
           <input
             type="text"
@@ -93,8 +104,8 @@ export default function TodoApp() {
             placeholder="What needs to be done?"
             className="w-full px-5 py-3 rounded-2xl bg-gray-50 border-none ring-1 ring-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all placeholder:text-gray-400 text-gray-700"
           />
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={loading}
             className="bg-indigo-600 text-white px-5 py-3 rounded-2xl hover:bg-indigo-700 active:scale-95 transition-all shadow-lg shadow-indigo-200 font-semibold"
           >
@@ -105,28 +116,26 @@ export default function TodoApp() {
         </form>
 
         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-          {todos.length === 0 && (
+          {(!todos || todos.length === 0) && (
             <div className="text-center py-10 text-gray-400">
               <p>No tasks yet. Start by adding one!</p>
             </div>
           )}
-          {todos.map((todo) => (
-            <div 
-              key={todo.id} 
-              className={`group flex items-center justify-between p-4 rounded-2xl transition-all duration-300 ${
-                todo.completed 
-                  ? 'bg-gray-50/50' 
-                  : 'bg-white shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_25px_-10px_rgba(0,0,0,0.15)] hover:bg-gray-50'
-              }`}
+          {todos?.map((todo) => (
+            <div
+              key={todo.id}
+              className={`group flex items-center justify-between p-4 rounded-2xl transition-all duration-300 ${todo.completed
+                ? 'bg-gray-50/50'
+                : 'bg-white shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_25px_-10px_rgba(0,0,0,0.15)] hover:bg-gray-50'
+                }`}
             >
               <div className="flex items-center gap-4 min-w-0">
                 <button
                   onClick={() => toggleTodo(todo.id)}
-                  className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
-                    todo.completed 
-                      ? 'bg-green-500 border-green-500 scale-110' 
-                      : 'border-gray-300 hover:border-indigo-500'
-                  }`}
+                  className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${todo.completed
+                    ? 'bg-green-500 border-green-500 scale-110'
+                    : 'border-gray-300 hover:border-indigo-500'
+                    }`}
                 >
                   {todo.completed && (
                     <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -134,15 +143,14 @@ export default function TodoApp() {
                     </svg>
                   )}
                 </button>
-                <span className={`text-lg truncate select-none transition-all duration-300 ${
-                  todo.completed 
-                    ? 'text-gray-400 line-through decoration-gray-300' 
-                    : 'text-gray-700 font-medium'
-                }`}>
+                <span className={`text-lg truncate select-none transition-all duration-300 ${todo.completed
+                  ? 'text-gray-400 line-through decoration-gray-300'
+                  : 'text-gray-700 font-medium'
+                  }`}>
                   {todo.text}
                 </span>
               </div>
-              <button 
+              <button
                 onClick={() => deleteTodo(todo.id)}
                 className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 p-2 transition-all duration-200 transform hover:scale-110"
               >
