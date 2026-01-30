@@ -1,0 +1,16 @@
+{
+    "name": "Simple PWA Todo",
+    "short_name": "Todo",
+    "description": "A simple PWA Todo list built with Next.js and Go",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#4f46e5",
+    "icons": [
+        {
+            "src": "/icons/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ]
+}
